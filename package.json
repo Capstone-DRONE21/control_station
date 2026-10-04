@@ -1,0 +1,18 @@
+{
+  "name": "control-station",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "node scripts/project.mjs dev",
+    "dev:backend": "node scripts/project.mjs backend",
+    "build": "npm run build --workspace frontend",
+    "lint": "npm run lint --workspace frontend",
+    "test:backend": "node scripts/project.mjs test",
+    "setup": "node scripts/project.mjs setup",
+    "dev:frontend": "npm run dev --workspace frontend",
+    "check": "npm run build && npm run lint && npm run test:backend"
+  }
+}
