@@ -4,9 +4,11 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { BufferGeometry, Float32BufferAttribute, InstancedMesh, Matrix4, Mesh, Object3D, ShaderChunk } from "three";
 
 // Shared dimensions keep the soil, fence, and planting area aligned.
-const FIELD_WIDTH = 60;
+const FIELD_WIDTH = 90;
 const FIELD_DEPTH = 44;
 const FIELD_CENTER_Z = -20;
+const ROAD_LENGTH = FIELD_WIDTH + 40;
+const ROAD_CENTER_Z = FIELD_CENTER_Z + FIELD_DEPTH / 2 + 5;
 // Corn needs more room than wheat for its broad, arching leaves.
 const ROW_SPACING = 0.85;
 const PLANT_SPACING = 0.6;
@@ -319,14 +321,27 @@ export default function FarmEnvironment() {
         <Crops />
       </Suspense>
 
-      {/* Dirt road */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, 0, 5]}
+        position={[0, -0.01, ROAD_CENTER_Z]}
       >
-        <planeGeometry args={[100, 5]} />
-        <meshStandardMaterial color="#c2ac82" roughness={1} />
+        <planeGeometry args={[ROAD_LENGTH, 7.2]} />
+        <meshStandardMaterial color="#5a5a5a" roughness={1} />
       </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, ROAD_CENTER_Z]}>
+        <planeGeometry args={[ROAD_LENGTH, 6]} />
+        <meshStandardMaterial color="#060606" roughness={1} />
+      </mesh>
+      {[-1.55, 1.55].map((offset) => (
+        <mesh
+          key={offset}
+          rotation={[-Math.PI / 2, 0, 0]}
+          position={[0, 0.01, ROAD_CENTER_Z + offset]}
+        >
+          <planeGeometry args={[ROAD_LENGTH, 0.65]} />
+          <meshStandardMaterial color="#000000" roughness={1} />
+        </mesh>
+      ))}
 
     </>
   );
