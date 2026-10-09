@@ -1,39 +1,11 @@
-import { useEffect, useState } from "react";
+import FarmScene from "./FarmScene";
 
 export default function App() {
-  const [status, setStatus] = useState("Connecting...");
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    async function checkBackend() {
-      try {
-        const response = await fetch("/api/health", {
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error("Health request failed");
-        }
-
-        const result = await response.json();
-        setStatus(`${result.service}: ${result.status}`);
-      } catch {
-        if (!controller.signal.aborted) {
-          setStatus("Backend unavailable");
-        }
-      }
-    }
-
-    void checkBackend();
-
-    return () => controller.abort();
-  }, []);
-
   return (
-    <main>
-      <h1>Control Station</h1>
-      <p role="status">{status}</p>
+    <main className="login-page">
+      <div className="farm-background" aria-hidden="true">
+        <FarmScene />
+      </div>
     </main>
   );
 }
