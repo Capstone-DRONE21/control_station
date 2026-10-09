@@ -6,7 +6,7 @@ The control station repository of the Self-Charging Autonomous Drone System with
 
 | Name | Student ID |
 |---|---|
-| Sem Axil Rais | 40022446 |
+| Sem Axil Rais | 40113324 |
 | Zaree Choudhry Hameed | 21026488 |
 
 ## Installation on macOS (Terminal)
