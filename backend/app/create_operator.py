@@ -1,5 +1,11 @@
 import sqlite3
+import sys
 from getpass import getpass
+from pathlib import Path
+
+# Direct execution places app/ on sys.path; imports need its parent instead.
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.database import database, initialize_database
 from app.security import normalize_username, passwords

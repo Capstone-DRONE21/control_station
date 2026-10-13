@@ -10,10 +10,8 @@ import FarmEnvironment from "./FarmEnvironment";
 const MODEL_PATH = "/models/drone.glb";
 const DRONE_SIZE = 3;
 
-// Change this if your model faces the wrong direction.
 const MODEL_ROTATION: [number, number, number] = [0, 0, 0];
 
-// Side patrol lanes leave the center of the view clear for the login interface.
 const FLIGHTS = [
   {
     points: [[-12, 5, -10], [-16, 5, -17], [-19, 5, -24], [-15, 5, -26], [-12, 5, -19], [-10, 5, -12]],
@@ -45,7 +43,7 @@ function FlyingDrone({ index }: { index: number }) {
   const { scene } = useGLTF(MODEL_PATH);
 
 
-  // Each drone gets its own object hierarchy.
+ 
   const model = useMemo(() => {
 
     const drone = scene.getObjectByName("Drone_Root");
@@ -94,7 +92,7 @@ function FlyingDrone({ index }: { index: number }) {
   useFrame((_, delta) => {
 
     const dt = Math.min(delta, 0.05);
-  const spinSpeed = 200;
+  const spinSpeed = 100;
 
   const directions = [1, -1, -1, 1];
 
@@ -108,7 +106,7 @@ function FlyingDrone({ index }: { index: number }) {
 
     elapsed.current += Math.min(delta, 0.05);
 
-    // Arc-length sampling gives steady speed on straight runs and rounded turns.
+    
     const progress = (flight.phase + elapsed.current * flight.speed / flight.length) % 1;
     flight.route.getPointAt(progress, flightGroup.current.position);
     flight.route.getTangentAt(progress, tangent);
@@ -149,8 +147,6 @@ class SceneBoundary extends Component<
   }
 }
 
-// A blue sky dome: lighter near the horizon and deeper overhead.
-// Unlit and untone-mapped so exposure from the warm sunlight cannot wash it out.
 function BlueSky() {
   const geometry = useMemo(() => {
     const sphere = new SphereGeometry(300, 48, 32);
@@ -250,7 +246,7 @@ export default function FarmScene() {
         
         <FieldClouds />
 
-        {/* Soft blue skylight with warm light reflected from the field. */}
+       
         <hemisphereLight args={["#edf6ff", "#d6bd80", 2.0]} />
         <directionalLight
           position={[-55, 24, -180]}
@@ -258,7 +254,7 @@ export default function FarmScene() {
           color="#fff0cc"
         />
 
-        {/* Gentle front fill reveals the wheat and drones against the sun. */}
+
         <directionalLight position={[20, 35, 45]} intensity={1.1} color="#fff6df" />
 
         <FarmEnvironment />

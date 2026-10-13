@@ -3,13 +3,13 @@ import { useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { BufferGeometry, Float32BufferAttribute, InstancedMesh, Matrix4, Mesh, Object3D, ShaderChunk } from "three";
 
-// Shared dimensions keep the soil, fence, and planting area aligned.
+
 const FIELD_WIDTH = 90;
 const FIELD_DEPTH = 44;
 const FIELD_CENTER_Z = -20;
 const ROAD_LENGTH = FIELD_WIDTH + 40;
 const ROAD_CENTER_Z = FIELD_CENTER_Z + FIELD_DEPTH / 2 + 5;
-// Corn needs more room than wheat for its broad, arching leaves.
+
 const ROW_SPACING = 0.85;
 const PLANT_SPACING = 0.6;
 const EDGE_CLEARANCE = 2;
@@ -186,7 +186,6 @@ function FieldDetails() {
   return (
     <group>
 
-      {/* Small orchard silhouettes give the distant landscape scale. */}
       {Array.from({ length: 12 }, (_, i) => (
         <group key={i} position={[-40 + i * 7, 0, -50 - Math.sin(i) * 4]}>
           <mesh position={[0, 1.1, 0]}>
