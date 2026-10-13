@@ -6,3 +6,4 @@ httpx
 pyserial
 pytest
 pytest-asyncio
+pwdlib[argon2] 
