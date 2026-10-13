@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     database_path: Path = Path("data/control_station.db")
     log_directory: Path = Path("logs")
 
+    frontend_origin: str = "http://127.0.0.1:5173" 
+    cookie_secure:bool = False
+    
+
     drone_serial_port: str = ""
     drone_baud_rate: int = 57600
     simulated_drone_url: str = "udpin://127.0.0.1:14540"
