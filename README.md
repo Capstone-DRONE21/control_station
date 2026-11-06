@@ -74,6 +74,60 @@ A control station will be implemented to ensure communication between the operat
 
 ![VR UML sequence diagram](<docs/VR/UML Visualization - Sequence.png>)
 
+# 5. Alternatives Analysis
+
+## 5.3 Data Exchange
+
+### Alternative A - Periodic Polling
+
+The dashboard requests the latest telemetry at fixed intervals and the receiving service responds with its current information. Information remain outdated until the next request but shorter polling intervals reduce that delay, however, it increases traffic.
+
+### Alternative B - Persistent Connection
+
+A perisstent connection allows a service to send updates as they become available instead of waiting for continuous requests from the receiver. It supports frequent and realtime updates but require handling disconnetions, reconnections and synchronization.
+
+### Alternative C - Broker-Based Messaging
+
+Subsystems publish messages to a broker, and "interested" consumers subscribe to them (ie.: telemetry, charging-pad status, scheduling decisions or command channels). Producers do not need a direct connection to every consumer. However, the broker needs to be configured, ran, monitored and be recovered if for any reason it fails.
+
+### Weighted Evaluation
+
+| Criterion | Weight | Periodic Polling | Persistent Connections | Broker-Based Messaging |
+| --- | ---: | ---: | ---: | ---: |
+| Telemetry freshness | 25% | 4 | 10 | 10 |
+| Command feedback and recovery | 25% | 6 | 8 | 8 |
+| Implementation effort | 20% | 10 | 8 | 4 |
+| Integration across subsystems | 15% | 6 | 6 | 10 |
+| Operational simplicity | 10% | 10 | 8 | 4 |
+| Ability to accommodate growth | 5% | 4 | 8 | 10 |
+| **Weighted Score / 10** | **100%** | **6.60** | **8.20** | **7.70** |
+
+## 5.4 Visualization
+
+### Alternative A - 2D Dashboard or Map
+
+Using the dashboard and using 2D elements or map to visualize the fleet such as the camera broadcast on the drones, a map showing the live position of all drones relative to the charging pad, along with their telemetry. It provides less spatial understanding of the drones.
+
+### Alternative B - Interactive 3D Scene
+
+A 3D scene using Three.js represents the environment, drones and charging pad from a camera pov that the user cn move. It can image flight paths, altitude differences and landing sequences. This alternative supports desktop demonstration.
+
+### Alternative C - Immersive VR
+
+An immersive VR interface presents the fleet environment with a metaquest headset, which allows the user to view drone activity from a spatial perspective. It helps demonstrate autonomous movements, landing and all drones flying together. It allows for telemtry reading by selecting a drone and is more suitable for a good demonstration.
+
+### Weighted Evaluation
+
+| Criterion | Weight | 2D Dashboard or Map | Interactive 3D Scene | Immersive VR |
+| --- | ---: | ---: | ---: | ---: |
+| Demonstration relevance | 25% | 2 | 4 | 10 |
+| Understanding spatial behavior | 20% | 4 | 8 | 10 |
+| Clarity for fleet monitoring | 20% | 10 | 6 | 6 |
+| Implementation effort | 15% | 8 | 8 | 4 |
+| Hardware accessibility | 10% | 10 | 8 | 10 |
+| Ease of demonstration | 10% | 10 | 8 | 4 |
+| **Weighted Score / 10** | **100%** | **6.50** | **6.60** | **7.70** |
+
 # Installation
 
 ## Installation on macOS (Terminal)
