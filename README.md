@@ -52,7 +52,7 @@ A control station will be implemented to ensure communication between the operat
 
 ## Interfaces
 
-![Control Station and VR interfaces](<docs/Interfaces - Control Station and Visualization-2.png>)
+![Control Station and VR interfaces](<docs/Interfaces - Control Station and Visualization.jpg>)
 
 ## Flowcharts
 
