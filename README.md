@@ -82,22 +82,23 @@ A control station will be implemented to ensure communication between the operat
 
 The control station receive the information from the drones, charging pad and fleet scheduler.The operator can monitor the commands from one place which makes easier to login and trace the commands. However, if the control station doesn't work then the communication and fleet scheduler would be interrupted.
 
-### Alternative B - Direct communication between subsystems
+### Alternative B - Distributed Control Station
 
-The drones will directly communicating with other subsystem like charging pad and
-scheduler and also with each other.The control station directly shows their information and allows the operator to send commands. Even though the control station is unavailable but it let some activities to continue. However, there are other rules needed for managing the connections when operator commands have conflicted with scheduler decisions.
+Each drone has a small companion computer which runs part of the control station. The drones share their telemetry to each other so every drone knows the state of the fleet. The drones are communicating with the fleet scheduler for scheduling decisions. The operator can connect to any drone to monitor the fleet or send commands. If one drone's control station fails, the other ones can keep on working. However, this solution requires extra hardware (1 companion computer per drone). It is also more difficult to sychronize with all drones and track the logs, since they will be stored on different drones.
+
+
 
 ### Weighted Evaluation
 
-| Criterion | Weight | Centralized Control Station | Direct Communication Between Subsystems |
+| Criterion | Weight | Centralized Control Station | Distributed Control Station |
 | --- | ---: | ---: | ---: |
 | Command authority and state consistency | 25% | 9 | 6 |
 | Continuity during control-station failure | 25% | 3 | 8 |
 | Implementation effort | 20% | 8 | 5 |
-| Logging traceability | 15% | 9 | 5 |
+| Logging traceability | 15% | 9 | 3 |
 | Integration simplicity | 10% | 8 | 5 |
 | Ability to accommodate growth | 5% | 6 | 7 |
-| **Weighted Score / 10** | **100%** | **7.05** | **6.10** |
+| **Weighted Score / 10** | **100%** | **7.05** | **5.80** |
 
 ## 5.2 Operator Interface
 
