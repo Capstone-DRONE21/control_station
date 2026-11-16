@@ -6,7 +6,7 @@ The control station repository of the Self-Charging Autonomous Drone System with
 
 | Name | Student ID |
 |---|---|
-| Sem Axil Rais | 40022446 |
+| Sem Axil Rais | 40113324 |
 | Zaree Choudhry Hameed | 21026488 |
 
 # 2. Purpose
@@ -75,6 +75,56 @@ A control station will be implemented to ensure communication between the operat
 ![VR UML sequence diagram](<docs/VR/UML Visualization - Sequence.png>)
 
 # 5. Alternatives Analysis
+
+## 5.1 Control Station Architecture
+
+### Alternative A - Centralized control station
+
+The control station receive the information from the drones, charging pad and fleet scheduler.The operator can monitor the commands from one place which makes easier to login and trace the commands. However, if the control station doesn't work then the communication and fleet scheduler would be interrupted.
+
+### Alternative B - Distributed Control Station
+
+Each drone has a small companion computer which runs part of the control station. The drones share their telemetry to each other so every drone knows the state of the fleet. The drones are communicating with the fleet scheduler for scheduling decisions. The operator can connect to any drone to monitor the fleet or send commands. If one drone's control station fails, the other ones can keep on working. However, this solution requires extra hardware (1 companion computer per drone). It is also more difficult to sychronize with all drones and track the logs, since they will be stored on different drones.
+
+
+
+### Weighted Evaluation
+
+| Criterion | Weight | Centralized Control Station | Distributed Control Station |
+| --- | ---: | ---: | ---: |
+| Command authority and state consistency | 25% | 9 | 6 |
+| Continuity during control-station failure | 25% | 3 | 8 |
+| Implementation effort | 20% | 8 | 5 |
+| Logging traceability | 15% | 9 | 3 |
+| Integration simplicity | 10% | 8 | 5 |
+| Ability to accommodate growth | 5% | 6 | 7 |
+| **Weighted Score / 10** | **100%** | **7.05** | **5.80** |
+
+## 5.2 Operator Interface
+
+### Alternative A - Custom web dashboard
+
+The dashboard specifically designed to show the with battery indicators, a charging schedule and override buttons.The operator uses the dashboard to view drone information, charging-pad status and scheduling decisions.We used the React/typescript for frontend and FastAPI/python for backend. However, we still need to develop and test the live updates, connection warnings and command feedback.
+
+### Alternative B - Native Desktop Application
+
+A desktop application that provides a monitoring dashboard and command controls. It can integrate with local device interfaces which helps when the station connects to physical hardware. It requires the support of multiple operating systems at the same time which makes the implementation more lengthy and difficult.
+
+### Alternative C - Adapt an Existing Ground-Control Application
+
+This alternative extends an existing drone-control application. This application may offer telemetry displays, commands and overall monitoring which reduce significantly the implementation effort. It needs to be compatible with the physical drone, simulated drones and the interfaces used. For charging pad information and scheduler integration. it may require customization that is beyond the application's functions. 
+
+### Weighted Evaluation
+
+| Criterion | Weight | Custom Web Dashboard | Native Desktop Application | Adapt an Existing Ground-Control Application |
+| --- | ---: | ---: | ---: | ---: |
+| Fit with monitoring and controls | 25% | 9 | 9 | 5 |
+| Compatibility with subsystems interfaces | 20% | 8 | 8 | 5 |
+| Implementation effort | 20% | 8 | 5 | 6 |
+| Deployment across macOS and Windows | 15% | 9 | 5 | 6 |
+| Flexibility  | 10% | 9 | 8 | 5 |
+| Accessto local hardware | 10% | 4 | 9 | 8 |
+| **Weighted Score / 10** | **100%** | **8.10** | **7.30** | **5.65** |
 
 ## 5.3 Data Exchange
 

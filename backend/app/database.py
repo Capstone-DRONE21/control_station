@@ -33,5 +33,111 @@ def initialize_database():
                 FOREIGN KEY (operator_id) 
                     REFERENCES operators (id) ON DELETE CASCADE
             );
-"""
-                                 )
+
+             -- 6 drones: 1 physical, 5 simulated
+            CREATE TABLE IF NOT EXISTS drones (
+                id INTEGER PRIMARY KEY CHECK (id BETWEEN 1 AND 6),
+                name TEXT NOT NULL UNIQUE,
+                type TEXT NOT NULL CHECK (type IN ('physical', 'simulated')),
+                connection_url TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+
+            
+            CREATE TABLE IF NOT EXISTS charging_pad (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                latitude REAL CHECK (latitude BETWEEN -90 AND 90),
+                longitude REAL CHECK (longitude BETWEEN -180 AND 180),
+                altitude_m REAL,
+                status TEXT NOT NULL DEFAULT 'free'
+                    CHECK (status IN ('free', 'reserved', 'occupied', 'charging', 'fault')),
+                occupied_by_drone_id INTEGER UNIQUE,
+                comm_status TEXT NOT NULL DEFAULT 'lost'
+                    CHECK (comm_status IN ('connected', 'lost')),
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (occupied_by_drone_id)
+                    REFERENCES drones (id) ON DELETE SET NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS missions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                drone_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                description TEXT,
+                status TEXT NOT NULL DEFAULT 'planned'
+                    CHECK (status IN ('planned', 'active', 'completed', 'aborted')),
+                started_at TEXT,
+                ended_at TEXT,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (drone_id)
+                    REFERENCES drones (id) ON DELETE CASCADE
+            );
+
+            -- Only one active mission per drone
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_one_active_mission
+                ON missions (drone_id) WHERE status = 'active';
+
+            -- Telemetry for all 6 drones
+            CREATE TABLE IF NOT EXISTS telemetry (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                drone_id INTEGER NOT NULL,
+                mission_id INTEGER,
+                recorded_at TEXT NOT NULL
+                    DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+                state TEXT NOT NULL CHECK (state IN (
+                    'idle', 'taking_off', 'on_mission', 'returning_to_base',
+                    'waiting_for_pad', 'landing', 'charging', 'offline', 'fault')),
+                comm_status TEXT NOT NULL DEFAULT 'connected'
+                    CHECK (comm_status IN ('connected', 'lost')),
+                battery_soc_percent REAL
+                    CHECK (battery_soc_percent BETWEEN 0 AND 100),
+                battery_soh_percent REAL
+                    CHECK (battery_soh_percent BETWEEN 0 AND 100),
+
+                --  physical GPS
+                latitude REAL CHECK (latitude BETWEEN -90 AND 90),
+                longitude REAL CHECK (longitude BETWEEN -180 AND 180),
+
+                -- Simulated, metres relative to the charging pad
+                pos_x_m REAL,
+                pos_y_m REAL,
+                pos_z_m REAL,
+
+                altitude_m REAL,
+                speed_mps REAL,
+                vel_x_mps REAL,
+                vel_y_mps REAL,
+                vel_z_mps REAL,
+                acc_x_mps2 REAL,
+                acc_y_mps2 REAL,
+                acc_z_mps2 REAL,
+
+                CHECK (
+                    (latitude IS NOT NULL AND longitude IS NOT NULL)
+                    OR (pos_x_m IS NOT NULL AND pos_y_m IS NOT NULL AND pos_z_m IS NOT NULL)
+                ),
+
+                FOREIGN KEY (drone_id)
+                    REFERENCES drones (id) ON DELETE CASCADE,
+                FOREIGN KEY (mission_id)
+                    REFERENCES missions (id) ON DELETE SET NULL
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_telemetry_drone_time
+                ON telemetry (drone_id, recorded_at);
+        """)
+
+        connection.execute("INSERT OR IGNORE INTO charging_pad (id) VALUES (1)")
+
+        # TODO:ports and communication urls to be configured later
+        connection.executemany(
+            """
+            INSERT OR IGNORE INTO drones (id, name, type, connection_url)
+            VALUES (?, ?, ?, ?)
+            """,
+            [(1, "Drone 1", "physical", "serial:///dev/ttyUSB0")]
+            + [
+                (i, f"Drone {i}", "simulated", f"udpin://127.0.0.1:{14540 + i - 2}")
+                for i in range(2, 7)
+            ],
+        )
