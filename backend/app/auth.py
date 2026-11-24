@@ -3,6 +3,7 @@ import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field, field_validator
+from starlette.requests import HTTPConnection
 
 from app.config import settings
 from app.database import database
@@ -42,7 +43,7 @@ def require_same_origin(request: Request):
         )
 
 
-def current_operator(request: Request):
+def current_operator(request: HTTPConnection):
     token = request.cookies.get(COOKIE_NAME)
 
     if not token or len(token) > 128:

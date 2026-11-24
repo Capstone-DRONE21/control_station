@@ -2,9 +2,18 @@ import { Component, Suspense, useMemo, useRef } from "react";
 import type { ReactNode } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Billboard, useGLTF } from "@react-three/drei";
-import { BackSide, Box3, CatmullRomCurve3, Color, Float32BufferAttribute, Group, SphereGeometry, Vector3 } from "three";
-import { clone } from "three/addons/utils/SkeletonUtils.js";
+import {
+  BackSide,
+  Box3,
+  CatmullRomCurve3,
+  Color,
+  Float32BufferAttribute,
+  Group,
+  SphereGeometry,
+  Vector3,
+} from "three";
 
+import { clone } from "three/addons/utils/SkeletonUtils.js";
 import FarmEnvironment from "./FarmEnvironment";
 
 const MODEL_PATH = "/models/drone.glb";
@@ -34,20 +43,28 @@ const FLIGHTS = [
   return { ...flight, route, length: route.getLength() };
 });
 
-function FlyingDrone({ index }: { index: number }) {
+function FlyingDrone({
+  index,
+  mission = false,
+}: {
+  index: number;
+  mission?: boolean;
+}) {
   const flight = FLIGHTS[index];
+
   const flightGroup = useRef<Group>(null);
   const elapsed = useRef(0);
   const tangent = useMemo(() => new Vector3(), []);
 
   const { scene } = useGLTF(MODEL_PATH);
 
-
- 
   const model = useMemo(() => {
-
     const drone = scene.getObjectByName("Drone_Root");
-    if (!drone) throw new Error("Drone not found");
+
+    if (!drone) {
+      throw new Error("Drone not found");
+    }
+
     const copy = clone(drone);
 
     const oriented = new Group();
@@ -73,51 +90,185 @@ function FlyingDrone({ index }: { index: number }) {
       0.001,
     );
 
-    normalized.scale.setScalar(DRONE_SIZE / largestDimension);
+    normalized.scale.setScalar(
+      DRONE_SIZE / largestDimension,
+    );
 
     return normalized;
   }, [scene]);
 
-  const propellers = useMemo (
+  const propellers = useMemo(
     () =>
-    [
-      "Propeller_FL",
-      "Propeller_FR",
-      "Propeller_RL",
-      "Propeller_RR"
-    ].map((name)=> model.getObjectByName(name)),
-  [model],
-);
+      [
+        "Propeller_FL",
+        "Propeller_FR",
+        "Propeller_RL",
+        "Propeller_RR",
+      ].map((name) => model.getObjectByName(name)),
+    [model],
+  );
+
+  const missionRoute = useMemo(
+    () =>
+      new CatmullRomCurve3(
+        [
+          new Vector3(0, 6, 4),
+          new Vector3(-18, 6, -3),
+          new Vector3(-38, 7, -8),
+          new Vector3(-38, 8, -34),
+          new Vector3(-20, 8, -38),
+          new Vector3(0, 7, -20),
+          new Vector3(20, 8, -38),
+          new Vector3(38, 8, -34),
+          new Vector3(38, 7, -8),
+          new Vector3(18, 6, -3),
+        ],
+        true,
+        "centripetal",
+      ),
+    [],
+  );
+
+  const smoothstep = (value: number) =>
+    value * value * (3 - 2 * value);
 
   useFrame((_, delta) => {
-
-    const dt = Math.min(delta, 0.05);
-  const spinSpeed = 100;
-
-  const directions = [1, -1, -1, 1];
-
-  propellers.forEach((propeller, index) => {
-    if (propeller) {
-      propeller.rotation.y += directions[index] * spinSpeed * dt;
-    }
-});
-
     if (!flightGroup.current) return;
 
-    elapsed.current += Math.min(delta, 0.05);
+    elapsed.current = mission
+      ? Math.min(90, elapsed.current + delta)
+      : elapsed.current + delta;
 
-    
-    const progress = (flight.phase + elapsed.current * flight.speed / flight.length) % 1;
-    flight.route.getPointAt(progress, flightGroup.current.position);
-    flight.route.getTangentAt(progress, tangent);
-    flightGroup.current.rotation.y = Math.atan2(tangent.x, tangent.z);
+    const t = elapsed.current;
+    const group = flightGroup.current;
+    const directions = [1, -1, -1, 1];
 
+    const rotorPower = mission
+      ? smoothstep(
+          Math.min(1, Math.max(0, (t - 3) / 2)),
+        ) *
+        (1 -
+          smoothstep(
+            Math.min(1, Math.max(0, (t - 88) / 2)),
+          ))
+      : 1;
+
+    propellers.forEach((propeller, i) => {
+      if (propeller) {
+        propeller.rotation.y +=
+          directions[i] * 100 * delta * rotorPower;
+      }
+    });
+
+    if (mission) {
+      const groundY = 0.73;
+      const cruiseY = 6;
+      const laps = 4;
+
+      if (t < 3) {
+        // 0–3 seconds: idle on pad.
+        group.position.set(0, groundY, 4);
+      } else if (t < 8) {
+        // 3–8 seconds: vertical takeoff.
+        const progress = smoothstep((t - 3) / 5);
+
+        group.position.set(
+          0,
+          groundY + (cruiseY - groundY) * progress,
+          4,
+        );
+      } else if (t < 82) {
+        // 8–82 seconds: four complete field circuits.
+        const flightTime = t - 8;
+        const duration = 74;
+        const ramp = 3;
+
+        let distanceTime: number;
+
+        if (flightTime < ramp) {
+          distanceTime =
+            (flightTime * flightTime) / (2 * ramp);
+        } else if (flightTime > duration - ramp) {
+          const remaining = duration - flightTime;
+
+          distanceTime =
+            duration -
+            ramp -
+            (remaining * remaining) / (2 * ramp);
+        } else {
+          distanceTime = flightTime - ramp / 2;
+        }
+
+        const progress =
+          ((laps * distanceTime) / (duration - ramp)) % 1;
+
+        missionRoute.getPointAt(
+          progress,
+          group.position,
+        );
+
+        missionRoute.getTangentAt(
+          progress,
+          tangent,
+        );
+
+        const targetYaw = Math.atan2(
+          tangent.x,
+          tangent.z,
+        );
+
+        const difference = Math.atan2(
+          Math.sin(targetYaw - group.rotation.y),
+          Math.cos(targetYaw - group.rotation.y),
+        );
+
+        group.rotation.y +=
+          difference * (1 - Math.exp(-6 * delta));
+      } else if (t < 90) {
+        // 82–90 seconds: vertical landing.
+        const progress = smoothstep((t - 82) / 8);
+
+        group.position.set(
+          0,
+          cruiseY + (groundY - cruiseY) * progress,
+          4,
+        );
+      } else {
+        group.position.set(0, groundY, 4);
+      }
+
+      return;
+    }
+
+    // Other drones continue their normal looping flights.
+    const progress =
+      ((t * flight.speed) / flight.length + flight.phase) %
+      1;
+
+    flight.route.getPointAt(
+      progress,
+      group.position,
+    );
+
+    flight.route.getTangentAt(
+      progress,
+      tangent,
+    );
+
+    group.rotation.y = Math.atan2(
+      tangent.x,
+      tangent.z,
+    );
   });
 
   return (
     <group
       ref={flightGroup}
-      position={flight.route.getPointAt(flight.phase)}
+      position={
+        mission
+          ? [0, 0.73, 4]
+          : flight.route.getPointAt(flight.phase)
+      }
     >
       <primitive object={model} dispose={null} />
     </group>
@@ -228,6 +379,20 @@ function FieldClouds() {
   );
 }
 
+function ChargingPad(){
+  const {scene} = useGLTF("/models/charging-pad.glb");
+  const model = useMemo(() => scene.clone(true), [scene]);
+
+
+  return (
+    <primitive
+      object = {model}
+      position = {[0,0.1,4]}
+      scale={DRONE_SIZE / 0.8}
+    />
+
+  );
+}
 export default function FarmScene() {
   return (
     <SceneBoundary>
@@ -260,11 +425,16 @@ export default function FarmScene() {
         <FarmEnvironment />
 
         <Suspense fallback={null}>
+          <ChargingPad />
+
           {FLIGHTS.map((_, index) => (
-            <FlyingDrone key={index} index={index} />
+         <FlyingDrone key={index} index={index} />
           ))}
+
+         <FlyingDrone index={0} mission />
         </Suspense>
       </Canvas>
     </SceneBoundary>
   );
 }
+
