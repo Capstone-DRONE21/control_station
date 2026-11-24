@@ -19,6 +19,8 @@ class Settings(BaseSettings):
 
     database_path: Path = Path("data/control_station.db")
     log_directory: Path = Path("logs")
+    #path for the demo recordings
+    recordings_path: Path = Path("data/demo_recordings")
 
     frontend_origin: str = "http://127.0.0.1:5173" 
     cookie_secure:bool = False
@@ -43,5 +45,8 @@ class Settings(BaseSettings):
     def logs_directory(self) -> Path:
         return BACKEND_DIRECTORY / self.log_directory
 
+    @property
+    def recordings_directory(self) -> Path:
+        return BACKEND_DIRECTORY / self.recordings_path
 
 settings = Settings()

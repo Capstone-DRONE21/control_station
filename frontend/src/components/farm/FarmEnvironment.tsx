@@ -7,15 +7,10 @@ import { BufferGeometry, Float32BufferAttribute, InstancedMesh, Matrix4, Mesh, O
 const FIELD_WIDTH = 90;
 const FIELD_DEPTH = 44;
 const FIELD_CENTER_Z = -20;
-const ROAD_LENGTH = FIELD_WIDTH + 40;
-const ROAD_CENTER_Z = FIELD_CENTER_Z + FIELD_DEPTH / 2 + 5;
 
 const ROW_SPACING = 0.85;
 const PLANT_SPACING = 0.6;
 const EDGE_CLEARANCE = 2;
-const PAD_X = 22;
-const PAD_Z = -8;
-const PAD_CLEARANCE = 4;
 const ROWS = Math.floor((FIELD_WIDTH - EDGE_CLEARANCE * 2) / ROW_SPACING) + 1;
 const PLANTS_PER_ROW = Math.floor((FIELD_DEPTH - EDGE_CLEARANCE * 2) / PLANT_SPACING) + 1;
 
@@ -27,7 +22,7 @@ const CROP_POSITIONS = Array.from({ length: ROWS * PLANTS_PER_ROW }, (_, index) 
     x: (row - (ROWS - 1) / 2) * ROW_SPACING + Math.sin(index * 13.7) * 0.05,
     z: FIELD_CENTER_Z + (plant - (PLANTS_PER_ROW - 1) / 2) * PLANT_SPACING + Math.cos(index * 9.1) * 0.08,
   };
-}).filter(({ x, z }) => Math.hypot(x - PAD_X, z - PAD_Z) >= PAD_CLEARANCE);
+});
 const COUNT = CROP_POSITIONS.length;
 
 const WIND_STRENGTH = 0.2;
@@ -198,26 +193,6 @@ function FieldDetails() {
           </mesh>
         </group>
       ))}
-      <group position={[PAD_X, 0.05, PAD_Z]}>
-        <mesh>
-          <cylinderGeometry args={[2.1, 2.2, 0.18, 32]} />
-          <meshStandardMaterial color="#3e4b46" roughness={0.8} />
-        </mesh>
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.1, 0]}>
-          <ringGeometry args={[1.65, 1.72, 40]} />
-          <meshBasicMaterial color="#dbe9c7" />
-        </mesh>
-        {[-0.45, 0.45].map((x) => (
-          <mesh key={x} position={[x, 0.15, 0]}>
-            <boxGeometry args={[0.12, 0.01, 1.1]} />
-            <meshBasicMaterial color="#dbe9c7" />
-          </mesh>
-        ))}
-        <mesh position={[0, 0.15, 0]}>
-          <boxGeometry args={[0.9, 0.01, 0.12]} />
-          <meshBasicMaterial color="#dbe9c7" />
-        </mesh>
-      </group>
     </group>
   );
 }
@@ -320,27 +295,7 @@ export default function FarmEnvironment() {
         <Crops />
       </Suspense>
 
-      <mesh
-        rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, -0.01, ROAD_CENTER_Z]}
-      >
-        <planeGeometry args={[ROAD_LENGTH, 7.2]} />
-        <meshStandardMaterial color="#5a5a5a" roughness={1} />
-      </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, ROAD_CENTER_Z]}>
-        <planeGeometry args={[ROAD_LENGTH, 6]} />
-        <meshStandardMaterial color="#060606" roughness={1} />
-      </mesh>
-      {[-1.55, 1.55].map((offset) => (
-        <mesh
-          key={offset}
-          rotation={[-Math.PI / 2, 0, 0]}
-          position={[0, 0.01, ROAD_CENTER_Z + offset]}
-        >
-          <planeGeometry args={[ROAD_LENGTH, 0.65]} />
-          <meshStandardMaterial color="#000000" roughness={1} />
-        </mesh>
-      ))}
+      
 
     </>
   );

@@ -125,6 +125,30 @@ def initialize_database():
 
             CREATE INDEX IF NOT EXISTS idx_telemetry_drone_time
                 ON telemetry (drone_id, recorded_at);
+
+            CREATE TABLE IF NOT EXISTS video_frames (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                mission_id INTEGER NOT NULL,
+                frame_index INTEGER NOT NULL
+                    CHECK (frame_index >= 0),
+                elapsed_ms REAL NOT NULL
+                    CHECK (elapsed_ms >= 0),
+                recorded_at TEXT NOT NULL,
+
+                --relative to the recording path: probably backend/data/...
+                image_path TEXT NOT NULL,
+                width INTEGER NOT NULL CHECK (width > 0),
+                height INTEGER NOT NULL CHECK (height > 0),
+                UNIQUE (mission_id, frame_index),
+                FOREIGN KEY (mission_id)
+                    REFERENCES missions (id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_video_frames_mission_time
+                ON video_frames (mission_id, recorded_at);
+
+            CREATE INDEX IF NOT EXISTS idx_telemetry_mission_time
+                ON telemetry (mission_id, recorded_at);
         """)
 
         connection.execute("INSERT OR IGNORE INTO charging_pad (id) VALUES (1)")
